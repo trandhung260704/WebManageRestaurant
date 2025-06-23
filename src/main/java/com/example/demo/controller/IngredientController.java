@@ -1,13 +1,16 @@
 package com.example.demo.controller;
 
 import com.example.demo.Entity.*;
-import com.example.demo.repository.*;
+import com.example.demo.repository.IngredientRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api")
 public class IngredientController {
@@ -56,4 +59,16 @@ public class IngredientController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/ingredients/page")
+    public ResponseEntity<Page<Ingredient>> getIngredientsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Ingredient> ingredientPage = ingredientRepo.findByNameContainingIgnoreCase(keyword, pageable);
+        return ResponseEntity.ok(ingredientPage);
+    }
+
 }

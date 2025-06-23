@@ -82,8 +82,29 @@ public class LoginController {
 
     // API logout — huỷ session
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
+    public ResponseEntity<?> logout(HttpServletResponse response, HttpSession session) {
+        // Huỷ session
         session.invalidate();
-        return ResponseEntity.ok("Đã đăng xuất");
+
+        // Xoá cookie userId
+        Cookie userIdCookie = new Cookie("userId", null);
+        userIdCookie.setHttpOnly(true);
+        userIdCookie.setPath("/");
+        userIdCookie.setMaxAge(0); // Xoá cookie
+        userIdCookie.setSecure(false);
+        userIdCookie.setDomain("localhost");
+        response.addCookie(userIdCookie);
+
+        // Xoá cookie token
+        Cookie tokenCookie = new Cookie("token", null);
+        tokenCookie.setHttpOnly(true);
+        tokenCookie.setPath("/");
+        tokenCookie.setMaxAge(0);
+        tokenCookie.setSecure(false);
+        tokenCookie.setDomain("localhost");
+        response.addCookie(tokenCookie);
+
+        return ResponseEntity.ok("Đăng xuất thành công");
     }
+
 }

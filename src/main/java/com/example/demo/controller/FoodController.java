@@ -3,12 +3,15 @@ package com.example.demo.controller;
 import com.example.demo.Entity.*;
 import com.example.demo.repository.*;
 import com.example.demo.dto.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api")
 public class FoodController {
@@ -72,5 +75,16 @@ public class FoodController {
         }
 
         return ResponseEntity.ok("Food and ingredients saved");
+    }
+
+    @GetMapping("/foods/page")
+    public ResponseEntity<Page<Food>> getFoodsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String keyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Food> foodPage = foodRepo.findByNamefoodContainingIgnoreCase(keyword, pageable);
+        return ResponseEntity.ok(foodPage);
     }
 }

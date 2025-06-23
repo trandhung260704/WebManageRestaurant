@@ -4,13 +4,14 @@ import com.example.demo.Entity.*;
 import com.example.demo.repository.*;
 import com.example.demo.Request.*;
 import com.example.demo.dto.*;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api")
 public class OrderController {
@@ -46,14 +47,18 @@ public class OrderController {
     }
 
     @PostMapping("/orders")
-    public String createOrder(@RequestBody OrderRequest request) {
+    public ResponseEntity<?> createOrder(@RequestBody OrderRequest request,
+                                         HttpSession session) {
+        Object idPerson = session.getAttribute("idPerson");
+        if (idPerson == null) {
+            return ResponseEntity.status(401).body("Chưa đăng nhập");
+        }
+
         LocalDateTime now = LocalDateTime.now();
 
         Order order = new Order();
-        order.setIdperson(request.getIdPerson());
+        order.setIdperson((Integer) idPerson);
         order.setOrderdate(java.sql.Timestamp.valueOf(now));
-
-        // Nếu muốn mặc định trạng thái:
         order.setStatus("Đang xử lý");
         order.setPaymentstatus("Chưa thanh toán");
 
@@ -67,6 +72,6 @@ public class OrderController {
             detailsRepo.save(detail);
         }
 
-        return "Order placed successfully!";
+        return ResponseEntity.ok("Đặt món thành công!");
     }
 }
