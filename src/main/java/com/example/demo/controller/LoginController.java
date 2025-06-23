@@ -51,7 +51,7 @@ public class LoginController {
             Cookie userIdCookie = new Cookie("userId", String.valueOf(person.getIdperson()));
             userIdCookie.setHttpOnly(true);
             userIdCookie.setPath("/");
-            userIdCookie.setMaxAge(24 * 60 * 60); // 1 ngày
+            userIdCookie.setMaxAge(24 * 60 * 60);
             userIdCookie.setSecure(false);
             userIdCookie.setDomain("localhost");
             response.addCookie(userIdCookie);
@@ -80,7 +80,6 @@ public class LoginController {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
     }
 
-    // API logout — huỷ session
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response, HttpSession session) {
         // Huỷ session

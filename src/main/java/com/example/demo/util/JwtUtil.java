@@ -26,11 +26,4 @@ public class JwtUtil {
                 .compact();
     }
 
-    public static Claims getClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-    }
 }

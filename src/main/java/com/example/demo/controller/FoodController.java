@@ -84,7 +84,7 @@ public class FoodController {
             @RequestParam(defaultValue = "") String keyword
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Food> foodPage = foodRepo.findByNamefoodContainingIgnoreCase(keyword, pageable);
+        Page<Food> foodPage = foodRepo.findByNamefood(keyword, pageable);
         return ResponseEntity.ok(foodPage);
     }
 }
