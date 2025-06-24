@@ -24,8 +24,6 @@ public class FoodController {
     }
 
     // FOOD API
-    // === FOOD API ===
-
     @GetMapping("/foods")
     public ResponseEntity<List<Food>> getAllFoods() {
         return ResponseEntity.ok(foodRepo.findAll());
@@ -73,7 +71,6 @@ public class FoodController {
                 foodIngredientRepo.save(fi);
             }
         }
-
         return ResponseEntity.ok("Food and ingredients saved");
     }
 
@@ -82,7 +79,8 @@ public class FoodController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String keyword
-    ) {
+    )
+    {
         Pageable pageable = PageRequest.of(page, size);
         Page<Food> foodPage = foodRepo.findByNamefood(keyword, pageable);
         return ResponseEntity.ok(foodPage);
