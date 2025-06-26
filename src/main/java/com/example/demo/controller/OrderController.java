@@ -6,6 +6,7 @@ import com.example.demo.Request.*;
 import com.example.demo.dto.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -48,16 +49,15 @@ public class OrderController {
 
     @PostMapping("/orders")
     public ResponseEntity<?> createOrder(@RequestBody OrderRequest request,
-                                         HttpSession session) {
-        Object idPerson = session.getAttribute("idPerson");
-        if (idPerson == null) {
+                                         @AuthenticationPrincipal Person user) {
+        if (user == null) {
             return ResponseEntity.status(401).body("Chưa đăng nhập");
         }
 
         LocalDateTime now = LocalDateTime.now();
 
         Order order = new Order();
-        order.setIdperson((Integer) idPerson);
+        order.setIdperson(user.getIdperson());
         order.setOrderdate(java.sql.Timestamp.valueOf(now));
         order.setStatus("Đang xử lý");
         order.setPaymentstatus("Chưa thanh toán");
@@ -74,4 +74,5 @@ public class OrderController {
 
         return ResponseEntity.ok("Đặt món thành công!");
     }
+
 }

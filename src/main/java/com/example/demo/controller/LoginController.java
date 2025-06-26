@@ -6,104 +6,82 @@ import com.example.demo.util.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@RequiredArgsConstructor
 public class LoginController {
 
     private final PersonRepository personRepo;
-
-    public LoginController(PersonRepository personRepo) {
-        this.personRepo = personRepo;
-    }
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData,
-                                   HttpServletResponse response,
-                                   HttpSession session) {
-
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
         Person person = personRepo.findByUsernameAndPassword(username, password);
         if (person != null) {
-
-            // Lưu thông tin vào session
-            session.setAttribute("idPerson", person.getIdperson());
-            session.setAttribute("username", person.getUsername());
-            session.setAttribute("role", person.isRole());
-
-            // Tạo JWT token
             Map<String, Object> claims = Map.of(
                     "idPerson", person.getIdperson(),
                     "username", person.getUsername(),
                     "role", person.isRole()
             );
-            String token = JwtUtil.generateToken(claims);
-
-            // Tạo cookie
-            Cookie userIdCookie = new Cookie("userId", String.valueOf(person.getIdperson()));
-            userIdCookie.setHttpOnly(true);
-            userIdCookie.setPath("/");
-            userIdCookie.setMaxAge(24 * 60 * 60);
-            userIdCookie.setSecure(false);
-            userIdCookie.setDomain("localhost");
-            response.addCookie(userIdCookie);
+            String token = jwtUtil.generateToken(claims, String.valueOf(person.getIdperson()));
 
             return ResponseEntity.ok(Map.of(
-                    "message", "Login success",
+                    "token", token,
                     "username", person.getUsername(),
-                    "role", person.isRole(),
-                    "token", token
+                    "role", person.isRole()
             ));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản hoặc mật khẩu sai");
         }
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getSessionInfo(HttpSession session) {
-        Object username = session.getAttribute("username");
-        if (username != null) {
-            return ResponseEntity.ok(Map.of(
-                    "username", username,
-                    "idPerson", session.getAttribute("idPerson"),
-                    "role", session.getAttribute("role")
-            ));
+    public ResponseEntity<?> getUserInfo() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof Person person)) {
+            return ResponseEntity.status(401).body("Chưa đăng nhập");
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Chưa đăng nhập");
+
+        return ResponseEntity.ok(Map.of(
+                "idPerson", person.getIdperson(),
+                "username", person.getUsername(),
+                "role", person.isRole()
+        ));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response, HttpSession session) {
-        // Huỷ session
-        session.invalidate();
-
-        // Xoá cookie userId
-        Cookie userIdCookie = new Cookie("userId", null);
-        userIdCookie.setHttpOnly(true);
-        userIdCookie.setPath("/");
-        userIdCookie.setMaxAge(0); // Xoá cookie
-        userIdCookie.setSecure(false);
-        userIdCookie.setDomain("localhost");
-        response.addCookie(userIdCookie);
-
-        // Xoá cookie token
-        Cookie tokenCookie = new Cookie("token", null);
-        tokenCookie.setHttpOnly(true);
-        tokenCookie.setPath("/");
-        tokenCookie.setMaxAge(0);
-        tokenCookie.setSecure(false);
-        tokenCookie.setDomain("localhost");
-        response.addCookie(tokenCookie);
-
-        return ResponseEntity.ok("Đăng xuất thành công");
-    }
-
+//    @PostMapping("/logout")
+//    public ResponseEntity<?> logout(HttpServletResponse response, HttpSession session) {
+//        session.invalidate();
+//
+//        Cookie userIdCookie = new Cookie("userId", null);
+//        userIdCookie.setHttpOnly(true);
+//        userIdCookie.setPath("/");
+//        userIdCookie.setMaxAge(0); // Xoá cookie
+//        userIdCookie.setSecure(false);
+//        userIdCookie.setDomain("localhost");
+//        response.addCookie(userIdCookie);
+//
+//        Cookie tokenCookie = new Cookie("token", null);
+//        tokenCookie.setHttpOnly(true);
+//        tokenCookie.setPath("/");
+//        tokenCookie.setMaxAge(0);
+//        tokenCookie.setSecure(false);
+//        tokenCookie.setDomain("localhost");
+//        response.addCookie(tokenCookie);
+//
+//        return ResponseEntity.ok("Đăng xuất thành công");
+//    }
 }
