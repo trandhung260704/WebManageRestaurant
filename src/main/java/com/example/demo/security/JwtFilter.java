@@ -38,16 +38,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
                 if (person != null && jwtUtil.isTokenValid(jwt, userId)) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            person, null, List.of() // bạn có thể thêm quyền nếu dùng @PreAuthorize
+                            person, null, List.of()
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             } catch (Exception e) {
-                // Token lỗi hoặc hết hạn
                 System.out.println("JWT lỗi: " + e.getMessage());
             }
         }
-
         chain.doFilter(request, response);
     }
 }
